@@ -122,5 +122,4 @@ function parseDatas(datas)
     objectDatas.testparse = undefined;
 
     return objectDatas;
-
 }

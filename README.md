@@ -23,7 +23,7 @@ copy %SRC%\%NAME%.cfg %OUTPUT%
 ### Linux
 
 Soon. In progress.
-For more informations check the [Zeecrowd website](http://www.zeecrowd.com/fr/page/405/zeecrowd-soon-available-on-linux-android-and-osx-are-next)
+For more informations check the [Zeecrowd website](http://www.zeecrowd.com/en/page/405/zeecrowd-soon-available-on-linux-android-and-osx-are-next)
 
 ### Licensing
 
