@@ -54,9 +54,14 @@ Rectangle
 
         onLinkActivated:
         {
+            console.log(">> onLinkActivated")
 //            if (!isBusy)
-//                fileTextDelegate.clicked()
+                fileTextDelegate.clicked()
         }
+
+        clip: true
+        elide: Text.ElideRight
+
      }
  }
 

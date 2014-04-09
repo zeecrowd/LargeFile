@@ -27,7 +27,11 @@ FileTextDelegate
 //        isBusy : item != null && item !== undefined ?  item.busy : false
     position : index
 
-    onClicked : mainView.openFile(item)
+    onClicked :
+    {
+        mainView.downloadFile(name)
+    }
+
     notifyPressed: true
 
     Rectangle

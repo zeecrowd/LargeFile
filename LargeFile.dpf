@@ -101,7 +101,7 @@
               <Properties />
               <Items>
                 <Item Template="QtResourceFile">
-                  <QtResourceFile FileName="UploadViewDelegate.qml">
+                  <QtResourceFile FileName="CheckedDelegate.qml">
                     <Properties>
                       <BuildAction value="Compile" />
                       <Locale value="" />
@@ -160,8 +160,36 @@
                     <Items />
                   </QtResourceFile>
                 </Item>
+                <Item Template="QtResourceFile">
+                  <QtResourceFile FileName="UploadViewDelegate.qml">
+                    <Properties>
+                      <BuildAction value="Compile" />
+                      <Locale value="" />
+                      <Alias value="" />
+                    </Properties>
+                    <Items />
+                  </QtResourceFile>
+                </Item>
+                <Item Template="QtResourceFile">
+                  <QtResourceFile FileName="DownloadStatusDelegate.qml">
+                    <Properties>
+                      <BuildAction value="Compile" />
+                    </Properties>
+                    <Items />
+                  </QtResourceFile>
+                </Item>
               </Items>
             </QtResourceProjectFolder>
+          </Item>
+          <Item Template="QtResourceFile">
+            <QtResourceFile FileName="LargeFileGridView.qml">
+              <Properties>
+                <BuildAction value="Compile" />
+                <Locale value="" />
+                <Alias value="" />
+              </Properties>
+              <Items />
+            </QtResourceFile>
           </Item>
           <Item Template="QtResourceFile">
             <QtResourceFile FileName="Main.js">
@@ -215,14 +243,6 @@
                 <BuildAction value="Compile" />
                 <Locale value="" />
                 <Alias value="" />
-              </Properties>
-              <Items />
-            </QtResourceFile>
-          </Item>
-          <Item Template="QtResourceFile">
-            <QtResourceFile FileName="LargeFileGridView.qml">
-              <Properties>
-                <BuildAction value="Compile" />
               </Properties>
               <Items />
             </QtResourceFile>

@@ -24,7 +24,6 @@ import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.0
 
-
 //import "./Delegates"
 
 
@@ -118,7 +117,7 @@ Zc.AppView
         {
             id         : itemsFileList
             name       : "ItemsLargeFileList"
-            persistent : false
+            persistent : true
 
             Zc.QueryStatus
             {
@@ -126,9 +125,72 @@ Zc.AppView
 
                 onCompleted :
                 {
+
+                    var allItems = itemsFileList.getAllItems();
+
+                    if (allItems !== null)
+                    {
+
+                        Tools.forEachInArray(allItems, function(x) {
+                            mainView.updateListFile(x,itemsFileList.getItem(x,""))
+                        })
+
+                    }
+
                     splashScreenId.height = 0;
                     splashScreenId.width = 0;
                     splashScreenId.visible = false;
+
+
+                    /*
+                    ** Pending Upload
+                    */
+
+                    var uploadFilePending = documentFolder.getFilePathFromDirectory(".upload");
+
+                    Tools.forEachInArray(uploadFilePending, function (x)
+                    {
+                        openUploadView();
+                        var completePath = documentFolder.localPath + ".upload/" + x;
+                        var fd = documentFolder.createFileDescriptorFromFile(completePath);
+                        if (fd !== null)
+                        {
+                            Presenter.instance.startUpload(fd,"")
+                        }
+                    });
+
+                    /*
+                    **
+                    */
+
+                    var downloadedFiles = documentFolder.getFilePathFromDirectory(".");
+                    var downloadedFilesProgress = documentFolder.getFilePathFromDirectory(".download");
+
+                    console.log(">> downloadedFiles.length " + downloadedFiles.length )
+                    console.log(">> downloadedFilesProgress.length " + downloadedFilesProgress.length )
+
+                    Tools.forEachInListModel(listFileModel,function (x)
+                    {
+
+                        if (Tools.findInArray(downloadedFiles,function (y) {return y === x.name}) !== null)
+                        {
+                            Tools.setPropertyinListModel(listFileModel,"downloadStatus",x.totalPacket,function (y){ return y === x.name});
+                        }
+                        else
+                        {
+                            var progressfileCount = Tools.countInArray(downloadedFilesProgress,function (y) {return y.indexOf(x.name) !== -1});
+
+                            if ( progressfileCount > 0)
+                            {
+                                console.log(">> try to seproperty downloadStatus " + x.name)
+                                Tools.setPropertyinListModel(listFileModel,"downloadStatus",progressfileCount,function (z)
+                                {
+                                    return z.name === x.name
+                                }
+                                );
+                            }
+                        }
+                    });
 
                 }
 
@@ -142,6 +204,12 @@ Zc.AppView
             {
                 console.log(">> ONE ITEM CHANGED")
                 mainView.updateListFile(idItem,getItem(idItem,""))
+            }
+
+            onItemDeleted :
+            {
+                console.log(">> try to delete " + idItem)
+                Tools.removeInListModel(listFileModel, function (y) {return y.name === idItem })
             }
         }
 
@@ -207,12 +275,12 @@ Zc.AppView
                 closeUploadViewIfNeeded()
             }
 
-            //            onFileDownloaded :
-            //            {
-            //                Presenter.instance.downloadFinished(fileName);
-            //                // close the upload view
-            //                closeUploadViewIfNeeded()
-            //            }
+            onFileDownloaded :
+            {
+                Presenter.instance.downloadFinished(fileName);
+                // close the upload view
+                closeUploadViewIfNeeded()
+            }
 
             //            onFileDeleted :
             //            {
@@ -225,10 +293,11 @@ Zc.AppView
             itemsFileList.loadItems(itemsFileListQueryStatus);
             documentFolder.ensureLocalPathExists();
             documentFolder.ensureLocalPathExists(".upload/");
+            documentFolder.ensureLocalPathExists(".download/");
+
             //        documentFolder.loadRemoteFiles(documentFolderQueryStatus);
         }
     }
-
 
     ListModel
     {
@@ -241,28 +310,53 @@ Zc.AppView
     }
 
 
+    function joinFileIndex()
+    {
+
+    }
+
+    function incrementDownloadStatus(name)
+    {
+        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
+        var newValue = listFileModel.get(index).downloadStatus + 1;
+
+        listFileModel.setProperty(index,"downloadStatus",newValue);
+
+
+        if (newValue >= listFileModel.get(index).totalPacket)
+        {
+            joinFile(index)
+        }
+
+    }
+
+    function incrementNbrPacket(name)
+    {
+        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name == name});
+        var newPacket = listFileModel.get(index).nbrPacket + 1;
+        var newStatus = listFileModel.get(index).status;
+        if (listFileModel.get(index).totalPacket === newPacket)
+        {
+            newStatus = ""
+        }
+    }
+
+
     function updateListFile(name,val)
     {
-        console.log(">> updateListFile name " + name)
-        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name = name});
-
-        console.log(">> updateListFile index " + index)
-        console.log(">> updateListFile val " + val)
+        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name == name});
 
         var o = Tools.parseDatas(val);
 
         if (index === -1)
         {
-            console.log(">> listFileModel.append " + o)
-            console.log(">> listFileModel.append o.name" + o.name)
-
             listFileModel.append( { "name"  : o.name,
                                      "nbrPacket" : o.nbrPacket,
-                                     "totalPacket" : o.nbrPacket,
-                                     "status" : o.status
+                                     "totalPacket" : o.totalPacket,
+                                     "status" : o.status,
+                                     "isSelected" : false,
+                                     "downloadStatus" : 0
                                  });
-
-            console.log(">> o.localPath " + o.localPath)
 
             if (o.localPath !== undefined  && o.localPath !== "")
             {
@@ -375,7 +469,15 @@ Zc.AppView
         o.status = status;
         o.nbrPacket = nbrPacket;
         o.totalPacket = totalPacket;
-        o.localPath = localPath.toString();
+        if (localPath!== null && localPath!== undefined && localPath!== "")
+        {
+            o.localPath = localPath.toString();
+        }
+        else
+        {
+            o.localPath = ""
+        }
+
 
         console.log(">> itemsFileList.setItem " + name)
         console.log(">> itemsFileList.setItem " + JSON.stringify(o))
@@ -395,20 +497,6 @@ Zc.AppView
         mainView.notifyFile(fd.name,0,0,"Waiting",fileUrl);
     }
 
-    function putFilesOnLocalDrive(folder)
-    {
-        openUploadView()
-
-        //        Tools.forEachInObjectList( documentFolder.files, function(x)
-        //        {
-        //            if (x.cast.isSelected)
-        //            {
-        //                 Presenter.instance.startDownload(x.cast,folder);
-        //            }
-        //        })
-
-    }
-
 
     FileDialog
     {
@@ -421,10 +509,6 @@ Zc.AppView
             if ( state === "putOnCloud" )
             {
                 putFileOnTheCloud(fileDialog.fileUrl);
-            }
-            else if (state === "putOnLocalDrive")
-            {
-                putFilesOnLocalDrive(fileDialog.folder);
             }
         }
     }
@@ -477,14 +561,53 @@ Zc.AppView
         //        })
     }
 
+    // TODO : effacer les fichiers existants sur le disque
     function deleteSelectedFiles()
     {
-        //        Tools.forEachInObjectList( documentFolder.files, function(file)
-        //        {
-        //            if (file.cast.isSelected)
-        //            {
-        //                documentFolder.deleteFile(file);
-        //            }
-        //        })
+        var toDeleted = [];
+
+        Tools.forEachInListModel( listFileModel, function(x)
+        {
+            if (x.isSelected)
+            {
+                toDeleted.push(x.name)
+            }
+        })
+
+
+        Tools.forEachInArray(toDeleted, function (x) {
+            itemsFileList.deleteItem(x)
+        });
+    }
+
+    function downloadFile(itemName)
+    {
+        openUploadView();
+
+
+        var item = Tools.findInListModel(listFileModel, function (x) { return x.name === itemName});
+
+        var totalPacket = item.totalPacket;
+
+        for (var i = 0 ; i < totalPacket ; i ++)
+        {
+
+            var existingfileDescriptor = documentFolder.createFileDescriptorFromFile(documentFolder.localPath + ".download/" + item.name + "_" + i);
+
+            console.log(">> existingfileDescriptor " + existingfileDescriptor  + " --> " + i)
+
+            if (existingfileDescriptor !== null)
+            {
+                if (i === (totalPacket - 1))
+                    continue;
+                if (existingfileDescriptor.size === (10 * 1024 * 1024))
+                    continue;
+            }
+
+            var fileDescriptor = documentFolder.getFileDescriptor(item.name + "_" + i,true);
+            fileDescriptor.setRemoteInfo(1024*1024*10,null)
+            var completePath = documentFolder.localPath + ".download/";
+            Presenter.instance.startDownload(fileDescriptor,completePath);
+        }
     }
 }

@@ -28,8 +28,8 @@ instance.fileStatus = {}
 instance.fileDescriptorToUpload = {};
 instance.fileDescriptorToDownload = {};
 
-var maxNbrDomwnload = 5;
-var maxNbrUpload = 5;
+var maxNbrDomwnload = 1;
+var maxNbrUpload = 1;
 
 var uploadRunning = 0;
 var downloadRunning = 0;
@@ -39,6 +39,7 @@ var filesToUpload = []
 
 function nextDownload()
 {
+
     if (filesToDownload.length > 0)
     {
         instance.incrementDownloadRunning()
@@ -49,13 +50,13 @@ function nextDownload()
                                    return x.name === file.descriptor.name }
                                );
 
+
         documentFolder.downloadFileTo(file.descriptor.cast,file.path)
     }
 }
 
 function nextUpload()
 {
-    console.log(">> nextUpload ")
     if (filesToUpload.length > 0)
     {
         instance.incrementUploadRunning();
@@ -65,7 +66,6 @@ function nextUpload()
 
         if (file.path !== "" && file.path !== null && file.path !== undefined)
         {
-            console.log(">> documentFolder.importLargeFileToLocalFolder")
 
             mainView.notifyFile(file.descriptor.name,0,0,"Splitting","")
 
@@ -118,7 +118,9 @@ instance.startDownload = function(file,path)
         /*
         ** to now the state of the progress
         */
-        file.queryProgressChanged.connect(function(){ updateQueryProgress(file.queryProgress,file.name) });
+
+
+        file.queryProgressChanged.connect(function(x){ updateQueryProgress(file.queryProgress,file.name) });
     }
 
 
@@ -143,11 +145,12 @@ instance.startDownload = function(file,path)
 }
 
 
-instance.startUpload = function(file,path)
+instance.startUpload = function(file,path,baseFileName)
 {
     var fd = {}
     fd.descriptor = file;
     fd.path = path
+    fd.baseFileName = baseFileName
 
     filesToUpload.push(fd)
 
@@ -168,7 +171,6 @@ instance.startUpload = function(file,path)
 
     if (found === null)
     {
-        console.log(">> APPEND " + file.name)
         uploadingDownloadingFiles.append( { "name"  : file.name,
                                  "action" : "Upload",
                                  "progress" : 0,
@@ -193,6 +195,7 @@ instance.startUpload = function(file,path)
 
 function updateQueryProgress(progress, fileName)
 {
+
     setPropertyinListModel(uploadingDownloadingFiles,"progress",progress,function (x) { return x.name === fileName });
 }
 
@@ -209,11 +212,12 @@ instance.uploadFinished = function(fileName,notify)
     if (fileDescriptor !== null && fileDescriptor !== undefined)
     {
         documentFolder.removeLocalFile(".upload\\" + fileDescriptor.name)
-        /*
-        ** For example if it's a cancel : no notification for all users
-        */
-//        if (notify)
-//            notifySender.sendMessage("","{ \"sender\" : \"" + mainView.context.nickname + "\", \"action\" : \"added\" , \"fileName\" : \"" + fileName + "\" , \"size\" : " +  fileDescriptor.size + " , \"lastModified\" : \"" + fileDescriptor.timeStamp + "\" }");
+
+        var lastIndex = fileDescriptor.name.lastIndexOf("_");
+        var originFileName = fileDescriptor.name.substring(0,lastIndex);
+
+        mainView.incrementNbrPacket(originFileName);
+
     }
     instance.fileDescriptorToUpload[fileName] = null
     removeInListModel(uploadingDownloadingFiles,function (x) { return x.name === fileName} );
@@ -224,6 +228,16 @@ instance.uploadFinished = function(fileName,notify)
 instance.downloadFinished = function(fileName)
 {
     var fileDescriptor = instance.fileDescriptorToDownload[fileName];
+
+    if (fileDescriptor !== null && fileDescriptor !== undefined)
+    {
+        var lastIndex = fileDescriptor.name.lastIndexOf("_");
+        var originFileName = fileDescriptor.name.substring(0,lastIndex);
+
+        mainView.incrementDownloadStatus(originFileName);
+    }
+
+
     instance.fileDescriptorToDownload[fileName] = null
     removeInListModel(uploadingDownloadingFiles,function (x) { return x.name === fileName} );
     instance.decrementDownloadRunning();

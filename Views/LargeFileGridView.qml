@@ -36,6 +36,11 @@ ScrollView
         splitView.setModel(model)
     }
 
+    function setSelected(name,val)
+    {
+        Tools.setPropertyinListModel(filesCheckListView.model,"isSelected",val, function (x) {return x.name === name});
+    }
+
     // All files are selected
     signal selectedAllChanged(bool val);
 
@@ -55,60 +60,61 @@ ScrollView
 
             function setModel(model)
             {
-//                filesCheckListView.model = model;
+                filesCheckListView.model = model;
                 filesNameListView.model = model;
                 filesStatusListView.model = model;
+                downloadStatusListView.model = model;
                 filesSizeListView.model = model;
             }
 
-//            ListView
-//            {
-//                Component
-//                {
-//                    id : headerCheckComponent
-//                    Item
-//                    {
-//                        height  : 30;
-//                        width   : parent.width;
+            ListView
+            {
+                Component
+                {
+                    id : headerCheckComponent
+                    Item
+                    {
+                        height  : 30;
+                        width   : parent.width;
 
-//                        Rectangle
-//                        {
-//                            width       : parent.width
-//                            height      : 25
-//                            anchors.top : parent.top
-//                            color       : "lightBlue"
+                        Rectangle
+                        {
+                            width       : parent.width
+                            height      : 25
+                            anchors.top : parent.top
+                            color       : "lightBlue"
 
-//                            radius      : 3
+                            radius      : 3
 
-//                            CheckBox
-//                            {
-//                                id : allSelected
-//                                anchors.verticalCenter: parent.verticalCenter
-//                                anchors.left    : parent.left
-//                                anchors.leftMargin: 7
-//                                enabled : !item.busy
-//                                onCheckedChanged:
-//                                {
-//                                    fodlerGridViewId.selectedAllChanged(checked);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
+                            CheckBox
+                            {
+                                id : allSelected
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.left    : parent.left
+                                anchors.leftMargin: 7
+                                enabled : !item.busy
+                                onCheckedChanged:
+                                {
+                                    //fodlerGridViewId.selectedAllChanged(checked);
+                                }
+                            }
+                        }
+                    }
+                }
 
-//                id                  : filesCheckListView
-//                spacing             : 10
-//                contentY            : filesCalculateDateListView.contentY
-//                Layout.minimumWidth : 25
-//                Layout.maximumWidth : 25
+                id                  : filesCheckListView
+                spacing             : 10
+                contentY            : filesSizeListView.contentY
+                Layout.minimumWidth : 25
+                Layout.maximumWidth : 25
 
-//                model       : parent.model
-//                interactive : false
+                model       : parent.model
+                interactive : false
 
-//                delegate    : CheckedDelegate {}
+                delegate    : CheckedDelegate {}
 
-//                header : headerCheckComponent
-//            }
+                header : headerCheckComponent
+            }
 
 
             ListView
@@ -123,6 +129,20 @@ ScrollView
                 delegate            : FileNameDelegate {}
 
                 header              : FileHeaderDelegate { text :  "Name" }
+            }
+
+            ListView
+            {
+                id : downloadStatusListView
+                spacing             : 10
+                contentY            : filesSizeListView.contentY
+                Layout.minimumWidth : 100
+                Layout.fillWidth    : true
+                model               : parent.model
+                interactive         : false
+                delegate            : DownloadStatusDelegate {}
+
+                header              : FileHeaderDelegate { text :  "Status" }
             }
 
             ListView

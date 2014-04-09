@@ -28,6 +28,14 @@ function forEachInObjectList(objectList, delegate)
     }
 }
 
+function forEachInListModel(objectList, delegate)
+{
+    for (var i=0;i<objectList.count;i++)
+    {
+        delegate(objectList.get(i));
+    }
+}
+
 function forEachInArray(array, delegate)
 {
     for (var i=0;i<array.length;i++)
@@ -35,6 +43,7 @@ function forEachInArray(array, delegate)
         delegate(array[i]);
     }
 }
+
 
 function findInListModel(listModel, findDelegate)
 {
@@ -46,6 +55,30 @@ function findInListModel(listModel, findDelegate)
 
     return null;
 }
+
+function findInArray(array, findDelegate)
+{
+    for (var i=0;i<array.length;i++)
+    {
+        if ( findDelegate(array[i]) )
+            return array[i];
+    }
+
+    return null;
+}
+
+function countInArray(array, findDelegate)
+{
+    var result = 0;
+    for (var i=0;i<array.length;i++)
+    {
+        if ( findDelegate(array[i]) )
+            result++;
+    }
+
+    return result;
+}
+
 
 function findInListModel(listModel, findDelegate)
 {

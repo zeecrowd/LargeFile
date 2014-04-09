@@ -10,5 +10,7 @@ OTHER_FILES += \
     Views/Delegates/FileTextDelegate.qml \
     Views/Delegates/SizeDelegate.qml \
     Views/Delegates/FileStatusDelegate.qml \
-    Views/Delegates/FileHeaderDelegate.qml
+    Views/Delegates/FileHeaderDelegate.qml \
+    Views/Delegates/CheckedDelegate.qml \
+    Views/Delegates/DownloadStatusDelegate.qml
    
