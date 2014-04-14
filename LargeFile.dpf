@@ -80,6 +80,16 @@
             </QtResourceFile>
           </Item>
           <Item Template="QtResourceFile">
+            <QtResourceFile FileName="folder.png">
+              <Properties>
+                <BuildAction value="Compile" />
+                <Locale value="" />
+                <Alias value="" />
+              </Properties>
+              <Items />
+            </QtResourceFile>
+          </Item>
+          <Item Template="QtResourceFile">
             <QtResourceFile FileName="import.png">
               <Properties>
                 <BuildAction value="Compile" />
@@ -102,6 +112,26 @@
               <Items>
                 <Item Template="QtResourceFile">
                   <QtResourceFile FileName="CheckedDelegate.qml">
+                    <Properties>
+                      <BuildAction value="Compile" />
+                      <Locale value="" />
+                      <Alias value="" />
+                    </Properties>
+                    <Items />
+                  </QtResourceFile>
+                </Item>
+                <Item Template="QtResourceFile">
+                  <QtResourceFile FileName="DownloadPacketDelegate.qml">
+                    <Properties>
+                      <BuildAction value="Compile" />
+                      <Locale value="" />
+                      <Alias value="" />
+                    </Properties>
+                    <Items />
+                  </QtResourceFile>
+                </Item>
+                <Item Template="QtResourceFile">
+                  <QtResourceFile FileName="DownloadStatusDelegate.qml">
                     <Properties>
                       <BuildAction value="Compile" />
                       <Locale value="" />
@@ -166,14 +196,6 @@
                       <BuildAction value="Compile" />
                       <Locale value="" />
                       <Alias value="" />
-                    </Properties>
-                    <Items />
-                  </QtResourceFile>
-                </Item>
-                <Item Template="QtResourceFile">
-                  <QtResourceFile FileName="DownloadStatusDelegate.qml">
-                    <Properties>
-                      <BuildAction value="Compile" />
                     </Properties>
                     <Items />
                   </QtResourceFile>
@@ -259,6 +281,14 @@
           <CopyToOutputDirectory value="OnlyIfNewer" />
           <CustomTool value="" />
           <Locale value="" />
+        </Properties>
+        <Items />
+      </QtResourceFile>
+    </Item>
+    <Item Template="QtResourceFile">
+      <QtResourceFile FileName="LargeFile.zeeapmanifest">
+        <Properties>
+          <BuildAction value="Compile" />
         </Properties>
         <Items />
       </QtResourceFile>

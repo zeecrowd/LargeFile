@@ -64,6 +64,7 @@ ScrollView
                 filesNameListView.model = model;
                 filesStatusListView.model = model;
                 downloadStatusListView.model = model;
+                downloadPacketListView.model = model;
                 filesSizeListView.model = model;
             }
 
@@ -142,8 +143,24 @@ ScrollView
                 interactive         : false
                 delegate            : DownloadStatusDelegate {}
 
-                header              : FileHeaderDelegate { text :  "Status" }
+                header              : FileHeaderDelegate { text :  "Download Status" }
             }
+
+            ListView
+            {
+                id : downloadPacketListView
+                spacing             : 10
+                contentY            : filesSizeListView.contentY
+                Layout.minimumWidth : 100
+                Layout.fillWidth    : true
+                model               : parent.model
+                interactive         : false
+                delegate            : DownloadPacketDelegate {}
+
+                header              : FileHeaderDelegate { text :  "Downloaded Packets" }
+            }
+
+
 
             ListView
             {
@@ -163,11 +180,11 @@ ScrollView
             {
                 id                  : filesSizeListView
                 spacing             : 10
-                Layout.minimumWidth : 100
+                Layout.minimumWidth : 120
                 model               : parent.model
                 interactive         : false
                 delegate            : SizeDelegate {}
-                header              : FileHeaderDelegate { text :  "Size" }
+                header              : FileHeaderDelegate { text :  "Uploaded Packet" }
             }
 
         }

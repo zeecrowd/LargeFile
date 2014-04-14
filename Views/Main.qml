@@ -78,19 +78,30 @@ Zc.AppView
                 mainView.deleteSelectedFiles();
             }
         }
+        //        ,
+        //        Action {
+        //            id: exportAction
+        //            shortcut: "Ctrl+E"
+        //            iconSource: "qrc:/LargeFile/Resources/import.png"
+        //            tooltip : "Download pictures"
+        //            onTriggered:
+        //            {
+        //                mainView.state = "putOnLocalDrive"
+        //                fileDialog.selectMultiple = false;
+        //                fileDialog.nameFilters = ""
+        //                fileDialog.selectFolder = true
+        //                fileDialog.open()
+        //            }
+        //        }
         ,
         Action {
-            id: exportAction
-            shortcut: "Ctrl+E"
-            iconSource: "qrc:/LargeFile/Resources/import.png"
-            tooltip : "Download pictures"
+            id: openLocalAction
+            shortcut: "Ctrl+O"
+            iconSource: "qrc:/LargeFile/Resources/folder.png"
+            tooltip : "Open local folder"
             onTriggered:
             {
-                mainView.state = "putOnLocalDrive"
-                fileDialog.selectMultiple = false;
-                fileDialog.nameFilters = ""
-                fileDialog.selectFolder = true
-                fileDialog.open()
+                documentFolder.openLocalPath();
             }
         }
     ]
@@ -137,10 +148,6 @@ Zc.AppView
 
                     }
 
-                    splashScreenId.height = 0;
-                    splashScreenId.width = 0;
-                    splashScreenId.visible = false;
-
 
                     /*
                     ** Pending Upload
@@ -166,15 +173,13 @@ Zc.AppView
                     var downloadedFiles = documentFolder.getFilePathFromDirectory(".");
                     var downloadedFilesProgress = documentFolder.getFilePathFromDirectory(".download");
 
-                    console.log(">> downloadedFiles.length " + downloadedFiles.length )
-                    console.log(">> downloadedFilesProgress.length " + downloadedFilesProgress.length )
-
                     Tools.forEachInListModel(listFileModel,function (x)
                     {
 
                         if (Tools.findInArray(downloadedFiles,function (y) {return y === x.name}) !== null)
                         {
-                            Tools.setPropertyinListModel(listFileModel,"downloadStatus",x.totalPacket,function (y){ return y === x.name});
+                            Tools.setPropertyinListModel(listFileModel,"downloadPacket",x.totalPacket,function (y){ return y.name === x.name});
+                            Tools.setPropertyinListModel(listFileModel,"downloadStatus","downloaded",function (y){ return y.name === x.name});
                         }
                         else
                         {
@@ -182,8 +187,12 @@ Zc.AppView
 
                             if ( progressfileCount > 0)
                             {
-                                console.log(">> try to seproperty downloadStatus " + x.name)
-                                Tools.setPropertyinListModel(listFileModel,"downloadStatus",progressfileCount,function (z)
+                                Tools.setPropertyinListModel(listFileModel,"downloadPacket",progressfileCount,function (z)
+                                {
+                                    return z.name === x.name
+                                }
+                                );
+                                Tools.setPropertyinListModel(listFileModel,"downloadStatus","incomplete",function (z)
                                 {
                                     return z.name === x.name
                                 }
@@ -192,6 +201,29 @@ Zc.AppView
                         }
                     });
 
+
+//                    /*
+//                    ** Pending deleting
+//                    */
+
+
+//                    Tools.forEachInListModel(listFileModel,function (x)
+//                    {
+//                        if (x.status === "Deleting")
+//                        {
+
+//                            for (var i = 0; i < x.totalPacket; i++)
+//                            {
+//                                var fd = documentFolder.getFileDescriptor(x.name + "_" + i ,true)
+//                                Presenter.instance.startDelete(fd);
+//                            }
+//                        }
+//                    });
+
+
+                    splashScreenId.height = 0;
+                    splashScreenId.width = 0;
+                    splashScreenId.visible = false;
                 }
 
                 onErrorOccured :
@@ -202,13 +234,12 @@ Zc.AppView
 
             onItemChanged :
             {
-                console.log(">> ONE ITEM CHANGED")
+                console.log(">> onItemChanged " + idItem)
                 mainView.updateListFile(idItem,getItem(idItem,""))
             }
 
             onItemDeleted :
             {
-                console.log(">> try to delete " + idItem)
                 Tools.removeInListModel(listFileModel, function (y) {return y.name === idItem })
             }
         }
@@ -217,29 +248,9 @@ Zc.AppView
         {
             id   : documentFolder
             name : "LargeFileDocumentFolder"
-            
-            //            Zc.QueryStatus
-            //            {
-            //                id : documentFolderQueryStatus
-
-            //                onErrorOccured :
-            //                {
-            //                    console.log(">> ERRROR OCCURED")
-            //                }
-
-            //                onCompleted :
-            //                {
-            //                    loader.item.setModel(documentFolder.files);
-            //                    splashScreenId.height = 0;
-            //                    splashScreenId.width = 0;
-            //                    splashScreenId.visible = false;
-            //                }
-            //            }
 
             onImportFileToLocalFolderCompleted :
             {
-
-                console.log(">> onImportFileToLocalFolderCompleted " + localFilePath)
                 // import a file to the .upload directory finished
                 if (localFilePath.indexOf(".upload") !== -1)
                 {
@@ -249,7 +260,6 @@ Zc.AppView
                     Tools.removeInListModel( uploadingDownloadingFiles, function (x) {return x.name === fileDescriptor.name});
 
 
-                    //                    Tools.setPropertyinListModel(uploadingDownloadingFiles,"status","Uploading",function (x) { return x.name === fileName });
                     Presenter.instance.decrementUploadRunning();
 
                     var listFiles = result.split("\n");
@@ -282,10 +292,11 @@ Zc.AppView
                 closeUploadViewIfNeeded()
             }
 
-            //            onFileDeleted :
-            //            {
-            //                notifySender.sendMessage("","{ \"sender\" : \"" + mainView.context.nickname + "\", \"action\" : \"deleted\" , \"fileName\" : \"" + fileName + "\"}");
-            //            }
+//            onFileDeleted :
+//            {
+//                console.log(">> Onfiledeleted " + fileName)
+//                Presenter.instance.deleteFinished(fileName,true);
+//            }
         }
 
         onStarted:
@@ -310,35 +321,56 @@ Zc.AppView
     }
 
 
-    function joinFileIndex()
+    function joinFile(name,nbrOfFiles)
     {
 
+        var fd = documentFolder.getFileDescriptor(name,true);
+
+        documentFolder.joinLargeFileToLocalFolder(fd, nbrOfFiles, 10 * 1024 * 1024, ".download", "")
     }
 
     function incrementDownloadStatus(name)
     {
         var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
-        var newValue = listFileModel.get(index).downloadStatus + 1;
+        var newValue = listFileModel.get(index).downloadPacket + 1;
 
-        listFileModel.setProperty(index,"downloadStatus",newValue);
 
+        listFileModel.setProperty(index,"downloadPacket",newValue);
 
         if (newValue >= listFileModel.get(index).totalPacket)
         {
-            joinFile(index)
+            listFileModel.setProperty(index,"downloadStatus","downloaded");
+            joinFile(name,listFileModel.get(index).totalPacket)
         }
 
     }
 
     function incrementNbrPacket(name)
     {
-        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name == name});
+        console.log(">> increment " + name)
+
+        var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
         var newPacket = listFileModel.get(index).nbrPacket + 1;
         var newStatus = listFileModel.get(index).status;
-        if (listFileModel.get(index).totalPacket === newPacket)
+        var totalPacket = listFileModel.get(index).totalPacket
+
+        //listFileModel.setProperty(index,"nbrPacket",newPacket);
+
+        if (newPacket >= listFileModel.get(index).totalPacket)
         {
-            newStatus = ""
+//            if ( newStatus.indexOf("Deleting") !== -1 )
+//            {
+//                itemsFileList.deleteItem(name);
+//            }
+//            else
+//            {
+              newStatus = "";
+            //}
         }
+
+        console.log(">>  notifyFile " +  newPacket + " " + totalPacket )
+
+        notifyFile(name,newPacket,totalPacket,newStatus,"")
     }
 
 
@@ -348,14 +380,15 @@ Zc.AppView
 
         var o = Tools.parseDatas(val);
 
-        if (index === -1)
+        if (index === -1 && o.status !== "Deleting")
         {
             listFileModel.append( { "name"  : o.name,
                                      "nbrPacket" : o.nbrPacket,
                                      "totalPacket" : o.totalPacket,
                                      "status" : o.status,
                                      "isSelected" : false,
-                                     "downloadStatus" : 0
+                                     "downloadStatus" : "",
+                                     "downloadPacket" : 0
                                  });
 
             if (o.localPath !== undefined  && o.localPath !== "")
@@ -374,6 +407,11 @@ Zc.AppView
             listFileModel.setProperty(index,"nbrPacket",o.nbrPacket)
             listFileModel.setProperty(index,"totalPacket",o.totalPacket)
             listFileModel.setProperty(index,"status",o.status)
+
+//            if (o.status === "Deleting")
+//            {
+//                Presenter.instance.nextDelete();
+//            }
         }
     }
 
@@ -459,6 +497,7 @@ Zc.AppView
         width : parent.width
         height: parent.height
         z: 100
+        visible: true
     }
 
 
@@ -478,10 +517,7 @@ Zc.AppView
             o.localPath = ""
         }
 
-
-        console.log(">> itemsFileList.setItem " + name)
-        console.log(">> itemsFileList.setItem " + JSON.stringify(o))
-
+        console.log(">> setItem " + name  + " " + nbrPacket)
         itemsFileList.setItem(name,JSON.stringify(o))
     }
 
@@ -523,45 +559,7 @@ Zc.AppView
         activity.stop();
     }
 
-    function importFile(fileUrls)
-    {
-        //        var fds = [];
-        //        for ( var i = 0 ; i < fileUrls.length ; i ++)
-        //        {
-        //            var fd = documentFolder.addFileDescriptorFromFile(fileUrls[i]);
-        //            if (fd !== null)
-        //            {
-        //                var fdo = {}
-        //                fdo.fileDescriptor =fd;
-        //                fdo.url = fileUrls[i];
-        //                fds.push(fdo);
-        //                fd.queryProgress = 1;
-        //            }
-        //        }
-
-        //        Tools.forEachInArray(fds, function (x)
-        //        {
-        //            Presenter.instance.startUpload(x.fileDescriptor,x.url);
-        //        });
-    }
-
-    function exportFile()
-    {
-        //        Tools.forEachInObjectList( documentFolder.files, function(x)
-        //        {
-        //            if (x.cast.isSelected)
-        //            {
-        //                if (x.cast.status !== "")
-        //                {
-        //                    x.queryProgress = 1;
-        //                    Presenter.instance.startDownload(x.cast);
-        //                    //documentFolder.downloadFile(x.cast)
-        //                }
-        //            }
-        //        })
-    }
-
-    // TODO : effacer les fichiers existants sur le disque
+    // TODO : effacer les fichiers existants sur le disque et server
     function deleteSelectedFiles()
     {
         var toDeleted = [];
@@ -570,31 +568,73 @@ Zc.AppView
         {
             if (x.isSelected)
             {
-                toDeleted.push(x.name)
+                toDeleted.push(x)
             }
         })
 
-
         Tools.forEachInArray(toDeleted, function (x) {
-            itemsFileList.deleteItem(x)
+
+            if (x.status === "Deleting")
+                return;
+
+//            var totalPacket = x.totalPacket
+//            console.log(">> NOTIFY FILE FROM to DELETED")
+//            notifyFile(x.name,0 ,x.nbrPacket,"Deleting","")
+
+            for (var i = 0; i < x.totalPacket; i++)
+            {
+                var fd = documentFolder.getFileDescriptor(x.name + "_" + i ,true)
+                documentFolder.deleteFile(fd);
+            //    Presenter.instance.startDelete(fd);
+            }
+
+            itemsFileList.deleteItem(x.name);
+
         });
+
+
     }
 
     function downloadFile(itemName)
     {
-        openUploadView();
-
 
         var item = Tools.findInListModel(listFileModel, function (x) { return x.name === itemName});
 
+
+        // Deleting in progress
+        if (item.status === "Deleting")
+            return;
+
+        // Download in progress
+        if (item.downloadStatus === "Downloading")
+            return;
+
+        // Not uploaded
+        if (item.totalPacket !== item.nbrPacket)
+            return;
+
+        // Already Downloaded
+        if (item.totalPacket === item.downloadPacket && item.downloadStatus === "downloaded")
+            return;
+
+        // Not joined
+        if (item.totalPacket === item.downloadPacket)
+        {
+            joinFile(item.name,item.totalPacket)
+            return;
+        }
+
+        // download in progress
+        openUploadView();
+
         var totalPacket = item.totalPacket;
+
+        Tools.setPropertyinListModel(listFileModel,"downloadStatus", "Downloading", function (x) { return x.name === itemName})
+
 
         for (var i = 0 ; i < totalPacket ; i ++)
         {
-
             var existingfileDescriptor = documentFolder.createFileDescriptorFromFile(documentFolder.localPath + ".download/" + item.name + "_" + i);
-
-            console.log(">> existingfileDescriptor " + existingfileDescriptor  + " --> " + i)
 
             if (existingfileDescriptor !== null)
             {

@@ -23,7 +23,18 @@ import QtQuick 2.0
 
 FileTextDelegate
 {
+    Rectangle
+    {
+        anchors.top : parent.top
+        anchors.left : parent.left
+        anchors.bottom: parent.bottom
+
+        width : parent.width * ( nbrPacket / totalPacket)
+
+        color :  status === "Deleting" ? "red" :  "lightgreen"
+        opacity : 0.5
+    }
+
     position : index
-    text : nbrPacket + " / " + totalPacket
-//    isBusy : item != null && item !== undefined ?  item.busy : false
+    text : nbrPacket + " / " + totalPacket        
 }
