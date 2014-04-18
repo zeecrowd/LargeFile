@@ -25,13 +25,17 @@ FileTextDelegate
 {
     Rectangle
     {
+
+        property string colorUpload :  nbrPacket < totalPacket ? "orange " : "lightgreen"
+
+
         anchors.top : parent.top
         anchors.left : parent.left
         anchors.bottom: parent.bottom
 
         width : parent.width * ( nbrPacket / totalPacket)
 
-        color :  status === "Deleting" ? "red" :  "lightgreen"
+        color :  status === "Deleting" ? "red" :  colorUpload
         opacity : 0.5
     }
 

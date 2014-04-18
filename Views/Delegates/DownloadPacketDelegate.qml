@@ -10,7 +10,7 @@ FileTextDelegate
 
         width : parent.width * (downloadPacket / totalPacket)
 
-        color : "lightgreen"
+        color : downloadPacket < totalPacket ? "orange " : "lightgreen"
         opacity : 0.5
     }
 

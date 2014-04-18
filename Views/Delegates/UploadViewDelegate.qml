@@ -82,17 +82,17 @@ Rectangle
 //            }
 //        }
 
-        Button
-        {
-            height : 20 ;
-            width  : 80
-            text: "Cancel"
+//        Button
+//        {
+//            height : 20 ;
+//            width  : 80
+//            text: "Cancel"
 
-            onClicked:
-            {
-                mainView.cancelUpload(name);
-            }
-        }
+//            onClicked:
+//            {
+//                mainView.cancelUpload(name);
+//            }
+//        }
     }
 
     ProgressBar
