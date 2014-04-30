@@ -107,6 +107,8 @@ Rectangle
         minimumValue: 0
         maximumValue: 100
         value       : progress
+
+        style: ProgressBarStyle {}
     }
 
 }

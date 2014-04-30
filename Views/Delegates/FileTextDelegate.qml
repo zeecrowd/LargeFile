@@ -19,7 +19,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import QtQuick 2.0
+import QtQuick 2.2
 
 Rectangle
 {
@@ -34,13 +34,7 @@ Rectangle
     property bool isBusy : false
     property int position : 0
 
-//    color : isBusy ? "lightgrey" : /*(position % 2 ? "#FFF2B7" :*/ "white" //)
     property alias text : delegateId.text
-
-//    onIsBusyChanged:
-//    {
-//        color = isBusy ? "lightgrey" : /*(position % 2 ? "#FFF2B7" :*/ "white" //);
-//    }
 
     Text
     {
@@ -54,8 +48,6 @@ Rectangle
 
         onLinkActivated:
         {
-            console.log(">> onLinkActivated")
-//            if (!isBusy)
                 fileTextDelegate.clicked()
         }
 

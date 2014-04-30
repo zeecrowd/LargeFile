@@ -73,7 +73,7 @@ function nextDownload()
     }
 }
 
-function nextUpload()
+instance.nextUpload = function()
 {
     if (filesToUpload.length > 0)
     {
@@ -85,7 +85,7 @@ function nextUpload()
         if (file.path !== "" && file.path !== null && file.path !== undefined)
         {
 
-            mainView.notifyFile(file.descriptor.name,0,0,"Splitting","")
+            mainView.notifyFile(file.descriptor.name,0,0,"Splitting","","Status")
             documentFolder.importLargeFileToLocalFolder(file.descriptor,file.path,1024*1024*10,".upload")
         }
         else
@@ -126,24 +126,6 @@ instance.decrementDownloadRunning = function()
 {
     downloadRunning = downloadRunning - 1
 }
-
-//instance.startDelete = function(fd)
-//{
-//    filesToDelete.push(fd)
-
-//    /*
-//    */
-//    if ( instance.fileDescriptorToDelete[fd.name] === null || instance.fileDescriptorToDelete[fd.name] === undefined)
-//    {
-//        instance.fileDescriptorToDelete[fd.name] = fd
-//  //      fd.queryProgressChanged.connect(function(x){ deleteQueryProgress(fd.queryProgess,fd.name) });
-//    }
-
-//    if (deleteRunning < maxNbrDelete)
-//    {
-//        instance.nextDelete();
-//    }
-//}
 
 
 instance.startDownload = function(file,path)
@@ -235,50 +217,16 @@ instance.startUpload = function(file,path,baseFileName)
 
     if (uploadRunning < maxNbrUpload)
     {
-        nextUpload();
+        instance.nextUpload();
     }
 }
 
-//function deleteQueryProgress(sender)
-//{
-//    localQuery.statusChanged.disconnect(deleteQueryProgress)
-
-//    // tout s'est bien passé ok
-//    if (localQuery.isCompleted() && localQuery.success("200") || localQuery.success("201"))
-//        return;
-
-//    console.log(">> deleteQueryProgress error " + localQuery.name)
-
-//    // prochain delete
-//    instance.deleteFinished(localQuery.cast.name,true);
-//}
 
 function updateQueryProgress(progress, fileName)
 {
 
     setPropertyinListModel(uploadingDownloadingFiles,"progress",progress,function (x) { return x.name === fileName });
 }
-
-//instance.deleteFinished = function(fileName,notify)
-//{
-//    var fileDescriptor = instance.fileDescriptorToDelete[fileName];
-
-//    if (fileDescriptor !== null && fileDescriptor !== undefined)
-//    {
-//        documentFolder.removeLocalFile(".upload\\" + fileDescriptor.name)
-//        documentFolder.removeLocalFile(".download\\" + fileDescriptor.name)
-
-//        var lastIndex = fileDescriptor.name.lastIndexOf("_");
-//        var originFileName = fileDescriptor.name.substring(0,lastIndex);
-
-
-//        mainView.incrementNbrPacket(originFileName);
-
-//    }
-//    instance.fileDescriptorToDownload[fileName] = null
-//    instance.decrementDeleteRunning();
-////    nextDelete();
-//}
 
 
 /*
@@ -291,6 +239,10 @@ instance.uploadFinished = function(fileName,notify)
 {
     var fileDescriptor = instance.fileDescriptorToUpload[fileName];
 
+    instance.fileDescriptorToUpload[fileName] = null
+    removeInListModel(uploadingDownloadingFiles,function (x) { return x.name === fileName} );
+    instance.decrementUploadRunning();
+
     if (fileDescriptor !== null && fileDescriptor !== undefined)
     {
         documentFolder.removeLocalFile(".upload\\" + fileDescriptor.name)
@@ -301,10 +253,9 @@ instance.uploadFinished = function(fileName,notify)
         mainView.incrementNbrPacket(originFileName);
 
     }
-    instance.fileDescriptorToUpload[fileName] = null
-    removeInListModel(uploadingDownloadingFiles,function (x) { return x.name === fileName} );
-    instance.decrementUploadRunning();
-    nextUpload();
+
+    // cp next uplaod after onItemChanged
+//    nextUpload();
 }
 
 instance.downloadFinished = function(fileName)

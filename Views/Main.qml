@@ -19,7 +19,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import QtQuick 2.0
+import QtQuick 2.2
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.0
@@ -202,23 +202,23 @@ Zc.AppView
                     });
 
 
-//                    /*
-//                    ** Pending deleting
-//                    */
+                    //                    /*
+                    //                    ** Pending deleting
+                    //                    */
 
 
-//                    Tools.forEachInListModel(listFileModel,function (x)
-//                    {
-//                        if (x.status === "Deleting")
-//                        {
+                    //                    Tools.forEachInListModel(listFileModel,function (x)
+                    //                    {
+                    //                        if (x.status === "Deleting")
+                    //                        {
 
-//                            for (var i = 0; i < x.totalPacket; i++)
-//                            {
-//                                var fd = documentFolder.getFileDescriptor(x.name + "_" + i ,true)
-//                                Presenter.instance.startDelete(fd);
-//                            }
-//                        }
-//                    });
+                    //                            for (var i = 0; i < x.totalPacket; i++)
+                    //                            {
+                    //                                var fd = documentFolder.getFileDescriptor(x.name + "_" + i ,true)
+                    //                                Presenter.instance.startDelete(fd);
+                    //                            }
+                    //                        }
+                    //                    });
 
 
                     splashScreenId.height = 0;
@@ -234,7 +234,6 @@ Zc.AppView
 
             onItemChanged :
             {
-                console.log(">> onItemChanged " + idItem)
                 mainView.updateListFile(idItem,getItem(idItem,""))
             }
 
@@ -264,7 +263,7 @@ Zc.AppView
 
                     var listFiles = result.split("\n");
 
-                    mainView.notifyFile(fileDescriptor.name,0,listFiles.length,"Uploading")
+                    mainView.notifyFile(fileDescriptor.name,0,listFiles.length,"Uploading","StatusAndLength")
 
                     Tools.forEachInArray(listFiles, function (x) {
                         var fd = documentFolder.createFileDescriptorFromFile(x);
@@ -292,11 +291,6 @@ Zc.AppView
                 closeUploadViewIfNeeded()
             }
 
-//            onFileDeleted :
-//            {
-//                console.log(">> Onfiledeleted " + fileName)
-//                Presenter.instance.deleteFinished(fileName,true);
-//            }
         }
 
         onStarted:
@@ -347,30 +341,17 @@ Zc.AppView
 
     function incrementNbrPacket(name)
     {
-        console.log(">> increment " + name)
-
         var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
         var newPacket = listFileModel.get(index).nbrPacket + 1;
         var newStatus = listFileModel.get(index).status;
         var totalPacket = listFileModel.get(index).totalPacket
 
-        //listFileModel.setProperty(index,"nbrPacket",newPacket);
-
         if (newPacket >= listFileModel.get(index).totalPacket)
         {
-//            if ( newStatus.indexOf("Deleting") !== -1 )
-//            {
-//                itemsFileList.deleteItem(name);
-//            }
-//            else
-//            {
-              newStatus = "";
-            //}
+            newStatus = "Uploaded";
         }
 
-        console.log(">>  notifyFile " +  newPacket + " " + totalPacket )
-
-        notifyFile(name,newPacket,totalPacket,newStatus,"")
+        notifyFile(name,newPacket,totalPacket,newStatus,"","IncrementNbrPacket")
     }
 
 
@@ -388,7 +369,8 @@ Zc.AppView
                                      "status" : o.status,
                                      "isSelected" : false,
                                      "downloadStatus" : "",
-                                     "downloadPacket" : 0
+                                     "downloadPacket" : 0,
+                                     "uploader" : o.uploader
                                  });
 
             if (o.localPath !== undefined  && o.localPath !== "")
@@ -401,17 +383,22 @@ Zc.AppView
                 fd.queryProgress = 1;
                 Presenter.instance.startUpload(fd.cast,o.localPath);
             }
+            listFileModel.setProperty(index,"status",o.status)
         }
         else
         {
             listFileModel.setProperty(index,"nbrPacket",o.nbrPacket)
             listFileModel.setProperty(index,"totalPacket",o.totalPacket)
             listFileModel.setProperty(index,"status",o.status)
+        }
 
-//            if (o.status === "Deleting")
-//            {
-//                Presenter.instance.nextDelete();
-//            }
+
+
+        //    console.log(">> try to send nex packet " + o.typeOfModification)
+        // Send the next packet
+        if (o.typeOfModification === "IncrementNbrPacket")
+        {
+            Presenter.instance.nextUpload();
         }
     }
 
@@ -501,13 +488,16 @@ Zc.AppView
     }
 
 
-    function notifyFile(name,nbrPacket,totalPacket,status,localPath)
+    function notifyFile(name,nbrPacket,totalPacket,status,localPath,typeOfModification)
     {
         var o ={}
         o.name = name;
         o.status = status;
         o.nbrPacket = nbrPacket;
         o.totalPacket = totalPacket;
+        o.typeOfModification = typeOfModification;
+        o.uploader = mainView.context.nickname;
+
         if (localPath!== null && localPath!== undefined && localPath!== "")
         {
             o.localPath = localPath.toString();
@@ -517,7 +507,6 @@ Zc.AppView
             o.localPath = ""
         }
 
-        console.log(">> setItem " + name  + " " + nbrPacket)
         itemsFileList.setItem(name,JSON.stringify(o))
     }
 
@@ -530,7 +519,7 @@ Zc.AppView
         if (fd === null)
             return;
 
-        mainView.notifyFile(fd.name,0,0,"Waiting",fileUrl);
+        mainView.notifyFile(fd.name,0,0,"Waiting",fileUrl,"Status");
     }
 
 
@@ -577,15 +566,15 @@ Zc.AppView
             if (x.status === "Deleting")
                 return;
 
-//            var totalPacket = x.totalPacket
-//            console.log(">> NOTIFY FILE FROM to DELETED")
-//            notifyFile(x.name,0 ,x.nbrPacket,"Deleting","")
+            //            var totalPacket = x.totalPacket
+            //            console.log(">> NOTIFY FILE FROM to DELETED")
+            //            notifyFile(x.name,0 ,x.nbrPacket,"Deleting","")
 
             for (var i = 0; i < x.totalPacket; i++)
             {
                 var fd = documentFolder.getFileDescriptor(x.name + "_" + i ,true)
                 documentFolder.deleteFile(fd);
-            //    Presenter.instance.startDelete(fd);
+                //    Presenter.instance.startDelete(fd);
             }
 
             itemsFileList.deleteItem(x.name);

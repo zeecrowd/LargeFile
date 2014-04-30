@@ -19,27 +19,58 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import QtQuick 2.0
+import QtQuick 2.2
 
-FileTextDelegate
+
+import QtQuick 2.2
+
+Rectangle
 {
-    text : status
-    //isBusy : item != null && item !== undefined ?  item.busy : false
-    position : index
+    id : fileTextDelegate
 
-    onClicked : mainView.openFile(item)
-    notifyPressed: true
+    height : 40
+    width : parent.width
 
-//    Rectangle
-//    {
-//        anchors.top : parent.top
-//        anchors.bottom : parent.bottom
-//        anchors.left    : parent.left
-//        opacity : 0.5
-//        visible : item.queryProgress > 0
-//        color   : "green"
+    signal clicked()
 
-//        width  : parent.width * item.queryProgress / 100
-//    }
-}
+    property bool notifyPressed : false
+    property bool isBusy : false
+    property int position : index
+
+
+    Text
+    {
+        id  : textStatus
+        color                       : "black"
+        anchors.top                 : parent.top
+        anchors.left                : parent.left
+        anchors.leftMargin          : 5
+        font.pixelSize              : 16
+        textFormat: Text.RichText
+
+        text : model.status
+
+
+        clip: true
+        elide: Text.ElideRight
+
+     }
+
+     Text
+     {
+        color                       : "black"
+        anchors.bottom              : parent.bottom
+        anchors.left                : parent.left
+        anchors.leftMargin          : 5
+        font.pixelSize              : 16
+        textFormat: Text.RichText
+
+        text : textStatus.text === "" ? "" :  "by " + model.uploader
+
+        clip: true
+        elide: Text.ElideRight
+
+     }
+
+ }
 
