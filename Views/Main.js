@@ -55,14 +55,47 @@ var filesToUpload = []
 //    }
 //}
 
-function nextDownload()
+function nextDownload(name)
 {
 
     if (filesToDownload.length > 0)
     {
+        var file = null;
+        var baseFileName = name;
+
+        if (baseFileName === null || baseFileName === "" || baseFileName === undefined)
+        {
+           baseFileName = filesToDownload[filesToDownload.length-1].baseFileName
+        }
+
+        if (baseFileName === null)
+            return;
+
+        var number = -1;
+
+
+        forEachInArray(filesToDownload, function (x)
+        {
+            if (x.baseFileName === baseFileName)
+            {
+              if (number === -1 || x.num < number)
+              {
+                  number = x.num;
+                  file = x;
+              }
+            }
+        });
+
+        if (file === null && name !== "")
+        {
+            instance.nextDownload("");
+            return;
+        }
+
         instance.incrementDownloadRunning()
 
-        var file = filesToDownload.pop();
+        removeInArray(filesToDownload, function(x){ return x === file});
+
         setPropertyinListModel(uploadingDownloadingFiles,"status","Downloading",
                                function (x) {
                                    return x.name === file.descriptor.name }
@@ -73,18 +106,49 @@ function nextDownload()
     }
 }
 
-instance.nextUpload = function()
+instance.nextUpload = function(name)
 {
     if (filesToUpload.length > 0)
-    {
+    {        
+        var file = null;
+        var baseFileName = name;
+
+        if (baseFileName === null || baseFileName === "" || baseFileName === undefined)
+        {
+           baseFileName = filesToUpload[filesToUpload.length-1].baseFileName
+        }
+
+        if (baseFileName === null)
+            return;
+
+        var number = -1;
+
+
+
+        forEachInArray(filesToUpload, function (x)
+        {
+            if (x.baseFileName === baseFileName)
+            {
+              if (number === -1 || x.num < number)
+              {
+                  number = x.num;
+                  file = x;
+              }
+            }
+        });
+
+        if (file === null && name !== "")
+        {
+            instance.nextUpload("");
+            return;
+        }
+
         instance.incrementUploadRunning();
 
-        var file = filesToUpload.pop();
-
+        removeInArray(filesToUpload, function(x){ return x === file});
 
         if (file.path !== "" && file.path !== null && file.path !== undefined)
         {
-
             mainView.notifyFile(file.descriptor.name,0,0,"Splitting","","Status")
             documentFolder.importLargeFileToLocalFolder(file.descriptor,file.path,1024*1024*10,".upload")
         }
@@ -130,9 +194,18 @@ instance.decrementDownloadRunning = function()
 
 instance.startDownload = function(file,path)
 {
+
+    var splitted = file.name.split("_")
+    var strNum = splitted[splitted.length - 1]
+    var num = parseInt(strNum);
+    var baseFileName = file.name.substring(0,file.name.length - (strNum.length + 1))
+
+
     var fd = {}
     fd.descriptor = file;
     fd.path = path
+    fd.baseFileName = baseFileName;
+    fd.num = num;
 
     filesToDownload.push(fd)
 
@@ -168,17 +241,24 @@ instance.startDownload = function(file,path)
 
     if (downloadRunning < maxNbrDomwnload)
     {
-        nextDownload();
+        nextDownload("");
     }
 }
 
 
-instance.startUpload = function(file,path,baseFileName)
+instance.startUpload = function(file,path)
 {
+
+    var splitted = file.name.split("_")
+    var strNum = splitted[splitted.length - 1]
+    var num = parseInt(strNum);
+    var baseFileName = file.name.substring(0,file.name.length - (strNum.length + 1))
+
     var fd = {}
     fd.descriptor = file;
     fd.path = path
     fd.baseFileName = baseFileName
+    fd.num = num
 
     filesToUpload.push(fd)
 
@@ -217,7 +297,7 @@ instance.startUpload = function(file,path,baseFileName)
 
     if (uploadRunning < maxNbrUpload)
     {
-        instance.nextUpload();
+        instance.nextUpload("");
     }
 }
 
@@ -249,9 +329,9 @@ instance.uploadFinished = function(fileName,notify)
 
         var lastIndex = fileDescriptor.name.lastIndexOf("_");
         var originFileName = fileDescriptor.name.substring(0,lastIndex);
+        var number = parseInt(fileDescriptor.name.substring(lastIndex + 1,fileDescriptor.name.length))
 
-        mainView.incrementNbrPacket(originFileName);
-
+        mainView.incrementNbrPacket(originFileName,number);
     }
 
     // cp next uplaod after onItemChanged
@@ -267,13 +347,17 @@ instance.downloadFinished = function(fileName)
         var lastIndex = fileDescriptor.name.lastIndexOf("_");
         var originFileName = fileDescriptor.name.substring(0,lastIndex);
 
-        mainView.incrementDownloadStatus(originFileName);
+        var strNum = fileDescriptor.name.substring(lastIndex+1,fileDescriptor.name.length)
+        var num = parseInt(strNum);
+
+
+        mainView.incrementDownloadStatus(originFileName,num);
     }
 
 
     instance.fileDescriptorToDownload[fileName] = null
     removeInListModel(uploadingDownloadingFiles,function (x) { return x.name === fileName} );
     instance.decrementDownloadRunning();
-    nextDownload();
+    nextDownload(originFileName);
 }
 

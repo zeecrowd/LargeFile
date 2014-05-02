@@ -121,6 +121,26 @@ function setPropertyinListModel(listModel, prop , value,  findDelegate)
     listModel.setProperty(index,prop,value)
 }
 
+function removeInArray(array, findDelegate)
+{
+    var index = -1;
+    for (var i=0;i<array.length;i++)
+    {
+        if ( findDelegate(array[i]) )
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index !=-1)
+    {
+        var result = array[index];
+        array.splice(index,1);
+        return result;
+    }
+    return null;
+}
 
 function parseDatas(datas)
 {

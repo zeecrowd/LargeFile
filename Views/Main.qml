@@ -323,11 +323,11 @@ Zc.AppView
         documentFolder.joinLargeFileToLocalFolder(fd, nbrOfFiles, 10 * 1024 * 1024, ".download", "")
     }
 
-    function incrementDownloadStatus(name)
+    function incrementDownloadStatus(name,number)
     {
         var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
-        var newValue = listFileModel.get(index).downloadPacket + 1;
 
+        var newValue = number + 1;
 
         listFileModel.setProperty(index,"downloadPacket",newValue);
 
@@ -336,13 +336,12 @@ Zc.AppView
             listFileModel.setProperty(index,"downloadStatus","downloaded");
             joinFile(name,listFileModel.get(index).totalPacket)
         }
-
     }
 
-    function incrementNbrPacket(name)
+    function incrementNbrPacket(name,number)
     {
         var index = Tools.getIndexInListModel(listFileModel,function(x) {return x.name === name});
-        var newPacket = listFileModel.get(index).nbrPacket + 1;
+        var newPacket = number + 1 //listFileModel.get(index).nbrPacket + 1;
         var newStatus = listFileModel.get(index).status;
         var totalPacket = listFileModel.get(index).totalPacket
 
@@ -398,7 +397,7 @@ Zc.AppView
         // Send the next packet
         if (o.typeOfModification === "IncrementNbrPacket")
         {
-            Presenter.instance.nextUpload();
+            Presenter.instance.nextUpload(o.name);
         }
     }
 
