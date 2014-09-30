@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/LargeFile">
+        <file>Packages/LargeFileApplication.cfg</file>
+        <file>Resources/bin.png</file>
+        <file>Resources/close.png</file>
+        <file>Resources/export.png</file>
+        <file>Resources/folder.png</file>
+        <file>Resources/icon.png</file>
+        <file>Resources/import.png</file>
+        <file>Views/Delegates/CheckedDelegate.qml</file>
+        <file>Views/Delegates/DownloadPacketDelegate.qml</file>
+        <file>Views/Delegates/DownloadStatusDelegate.qml</file>
+        <file>Views/Delegates/FileHeaderDelegate.qml</file>
+        <file>Views/Delegates/FileNameDelegate.qml</file>
+        <file>Views/Delegates/FileStatusDelegate.qml</file>
+        <file>Views/Delegates/FileTextDelegate.qml</file>
+        <file>Views/Delegates/SizeDelegate.qml</file>
+        <file>Views/Delegates/UploadViewDelegate.qml</file>
+        <file>Views/LargeFileGridView.qml</file>
+        <file>Views/Main.js</file>
+        <file>Views/Main.qml</file>
+        <file>Views/SplashScreen.qml</file>
+        <file>Views/Tools.js</file>
+        <file>Views/UploadStatusView.qml</file>
+    </qresource>
+</RCC>

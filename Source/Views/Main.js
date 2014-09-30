@@ -325,7 +325,7 @@ instance.uploadFinished = function(fileName,notify)
 
     if (fileDescriptor !== null && fileDescriptor !== undefined)
     {
-        documentFolder.removeLocalFile(".upload\\" + fileDescriptor.name)
+        documentFolder.removeLocalFile(".upload/" + fileDescriptor.name)
 
         var lastIndex = fileDescriptor.name.lastIndexOf("_");
         var originFileName = fileDescriptor.name.substring(0,lastIndex);
