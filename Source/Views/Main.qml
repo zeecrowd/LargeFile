@@ -78,21 +78,6 @@ Zc.AppView
                 mainView.deleteSelectedFiles();
             }
         }
-        //        ,
-        //        Action {
-        //            id: exportAction
-        //            shortcut: "Ctrl+E"
-        //            iconSource: "qrc:/LargeFile/Resources/import.png"
-        //            tooltip : "Download pictures"
-        //            onTriggered:
-        //            {
-        //                mainView.state = "putOnLocalDrive"
-        //                fileDialog.selectMultiple = false;
-        //                fileDialog.nameFilters = ""
-        //                fileDialog.selectFolder = true
-        //                fileDialog.open()
-        //            }
-        //        }
         ,
         Action {
             id: openLocalAction
@@ -271,6 +256,8 @@ Zc.AppView
 
                     });
 
+                    appNotification.logEvent(Zc.AppNotification.Add,"Uploading",fileName,"image://icons/" + "file:///" + fileName)
+
                     return;
                 }
             }
@@ -348,6 +335,7 @@ Zc.AppView
         if (newPacket >= listFileModel.get(index).totalPacket)
         {
             newStatus = "Uploaded";
+            appNotification.logEvent(Zc.AppNotification.Add,"Uploaded",name,"image://icons/" + "file:///" + name)
         }
 
         notifyFile(name,newPacket,totalPacket,newStatus,"","IncrementNbrPacket")
